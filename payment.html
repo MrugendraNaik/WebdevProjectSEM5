@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoRaga - Payment</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="billing.html" class="back-btn">← Back to Plans</a>
+      <div class="logo">EchoRaga</div>
+      <h2 style="color: #ff69b4;">Complete Your Payment</h2>
+    </div>
+
+    <!-- Plan Summary -->
+    <div class="plan-summary">
+      <div class="plan-name" id="planName"></div>
+      <div class="plan-price" id="planPrice"></div>
+
+      <div class="billing-options" id="billingOptions">
+        <div class="billing-option active" data-type="monthly">Monthly</div>
+        <div class="billing-option" data-type="yearly">Yearly (Save 25%)</div>
+      </div>
+
+      <div class="total-section">
+        <div class="price-row"><span>Subtotal</span><span id="subtotal"></span></div>
+        <div class="price-row"><span>GST (18%)</span><span id="gst"></span></div>
+        <div class="price-row" id="discountRow" style="display: none;">
+          <span>Discount</span><span id="discount">₹0.00</span>
+        </div>
+        <div class="price-row total-row"><span>Total</span><span id="total"></span></div>
+      </div>
+
+      <div class="next-billing" id="nextBilling"></div>
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="payment-methods">
+      <div class="method-title">Choose Payment Method</div>
+      <div class="methods-grid">
+        <div class="payment-method active" data-method="card">
+          <div class="method-icon">💳</div>
+          <div>Credit/Debit Card</div>
+        </div>
+        <div class="payment-method" data-method="upi">
+          <div class="method-icon">📱</div>
+          <div>UPI</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Form -->
+    <form id="paymentForm">
+      <!-- Card Section -->
+      <div class="form-section" id="cardSection">
+        <div class="form-group">
+          <label>Card Number</label>
+          <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Expiry (MM/YY)</label>
+            <input type="text" id="expiry" placeholder="12/25" maxlength="5">
+          </div>
+          <div class="form-group">
+            <label>CVV</label>
+            <input type="password" id="cvv" placeholder="123" maxlength="3">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Name on Card</label>
+          <input type="text" id="cardName" placeholder="John Doe">
+        </div>
+      </div>
+
+      <!-- UPI Section -->
+      <div class="form-section" id="upiSection" style="display: none;">
+        <div class="form-group">
+          <label>UPI ID</label>
+          <input type="text" id="upiId" placeholder="yourname@upi">
+        </div>
+      </div>
+
+      <!-- Promo Code -->
+      <div class="promo-section">
+        <label>Promo Code (Optional)</label>
+        <div class="promo-row">
+          <input type="text" id="promoCode" class="promo-input" placeholder="Enter code">
+          <button type="button" class="apply-btn" onclick="applyPromo()">Apply</button>
+        </div>
+        <div id="promoMessage"></div>
+      </div>
+
+      <button type="submit" class="pay-btn" id="payBtn">Pay</button>
+    </form>
+  </div>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="success-modal">
+    <div class="success-content">
+      <h2>✅ Payment Successful</h2>
+      <div class="success-details">
+        <p>Transaction ID: <span id="txnIdDisplay"></span></p>
+        <p>Plan: <span id="planDisplay"></span></p>
+        <p>Amount Paid: <span id="amountDisplay"></span></p>
+        <p>Next Billing: <span id="nextBillingDisplay"></span></p>
+      </div>
+      <button onclick="redirectToDashboard()" class="pay-btn">Go to Dashboard</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
