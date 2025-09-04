@@ -136,7 +136,7 @@
             letter-spacing: 2px;
             margin-bottom: 20px;
             font-family: 'Impact', sans-serif;
-            background: linear-gradient(135deg, #ff1493, #ff69b4, #fff);
+            background: linear-gradient(135deg, #ff1493, #ff69b4);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -546,3 +546,4 @@
                 padding: 25px 20px;
             }
         }
+
