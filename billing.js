@@ -87,14 +87,19 @@
             });
         });
 
-        // Plan selection functionality
-        document.querySelectorAll('.select-plan-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const planName = e.target.closest('.pricing-card').querySelector('.plan-name').textContent;
-                alert(`You selected the ${planName} plan! Redirecting to checkout...`);
-                // Here you would typically redirect to your payment processor
-            });
-        });
+        // Plan selection functionality (redirect directly without alert)
+document.querySelectorAll('.select-plan-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const planName = e.target.closest('.pricing-card').querySelector('.plan-name').textContent.toLowerCase();
+        if (planName === "harmony") {
+            window.location.href = "payment.html?plan=harmony";
+        } else if (planName === "symphony") {
+            window.location.href = "payment.html?plan=symphony";
+        } else {
+            window.location.href = "discover.html"; // free plan
+        }
+    });
+});
 
         // Initialize particles
         window.addEventListener('load', createParticles);
