@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Music Bars Background</title>
+  <style>
+    :root {
+      --bars: 48;         /* number of bars */
+      --gap: 6px;         /* space between bars */
+      --bar-radius: 10px; /* roundness */
+      --glow: 18px;       /* glow strength */
+      --accent1: 280 90% 60%;
+      --accent2: 190 90% 55%;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: radial-gradient(1200px 800px at 70% 10%, #111827 0%, #0b0f1a 60%, #090e17 100%);
+    }
+
+    #viz {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(var(--bars), 1fr);
+      align-items: end;
+      gap: var(--gap);
+      padding: 24px 24px 28px;
+      pointer-events: none;
+      mix-blend-mode: screen;
+      transition: opacity 260ms ease, transform 260ms ease;
+      z-index: 0;
+    }
+    #viz.hide { opacity: 0; transform: translateY(8px); }
+
+    .bar {
+      position: relative;
+      height: 6%;
+      border-radius: var(--bar-radius);
+      background: linear-gradient(180deg, hsl(var(--accent2)), hsl(var(--accent1)));
+      filter: drop-shadow(0 0 var(--glow) hsl(var(--accent2) / 0.9));
+      transform-origin: bottom center;
+      transform: scaleY(0.1);
+      transition: transform 34ms linear;
+      will-change: transform, background;
+    }
+    .bar::before {
+      content: "";
+      position: absolute; inset: 0; border-radius: inherit;
+      background: linear-gradient(180deg, transparent, rgba(255,255,255,0.08) 60%, transparent);
+    }
+
+    /* Indicator badge (optional) */
+    #indicator {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      padding: 8px 10px;
+      font: 600 12px/1.1 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color: #e5e7eb;
+      background: rgba(2,6,23,0.55);
+      border: 1px solid rgba(148,163,184,0.25);
+      border-radius: 12px;
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    @media (max-width: 640px) { :root { --bars: 28; --gap: 5px; } }
+  </style>
+</head>
+<body>
+  <div id="viz"></div>
+  <div id="indicator" aria-hidden="true"></div>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    (function () {
+      const $viz = $('#viz');
+      const $indicator = $('#indicator');
+      const BAR_COUNT = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bars')) || 48;
+      const bars = [];
+
+      // Build bars
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const $bar = $('<div/>').addClass('bar');
+        $viz.append($bar);
+        bars.push($bar);
+      }
+
+      // --- OPTIONAL: if your content scrolls inside a container, set its selector here ---
+      // e.g., const SCROLL_CONTAINER_SELECTOR = '.main';
+      const SCROLL_CONTAINER_SELECTOR = null; // <- leave null to use window scrolling
+      const scrollEl = SCROLL_CONTAINER_SELECTOR ? document.querySelector(SCROLL_CONTAINER_SELECTOR) : window;
+      const getScrollY = () => (SCROLL_CONTAINER_SELECTOR ? (scrollEl ? scrollEl.scrollTop : 0) : window.scrollY);
+
+      // --- Configurable hide threshold (in pixels) ---
+      let HIDE_THRESHOLD_PX = Math.round(window.innerHeight * 0.10); // default = 10% of viewport
+
+      window.getHideThreshold = function getHideThreshold () { return HIDE_THRESHOLD_PX; };
+      window.setHideThreshold = function setHideThreshold (px) {
+        HIDE_THRESHOLD_PX = Math.max(0, Number(px) || 0);
+        updateIndicator();
+        applyVisibility();
+      };
+
+      function updateIndicator() {
+        $indicator.text('Bars hide after ' + HIDE_THRESHOLD_PX + 'px scroll');
+      }
+
+      // --- Audio hookup (auto-detect <audio> elements when they play) ---
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      let ctx, analyser, dataArray, srcNode, rafId = null;
+
+      function setup() {
+        if (ctx) return;
+        ctx = new AudioCtx();
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        analyser.smoothingTimeConstant = 0.82;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+      }
+      function connectSource(node) {
+        if (srcNode) try { srcNode.disconnect(); } catch (e) {}
+        node.connect(analyser);
+        analyser.connect(ctx.destination); // comment to visualize without audio playback
+        srcNode = node;
+      }
+
+      function averageBinsIntoBars(freqData, barsCount) {
+        const out = new Array(barsCount).fill(0);
+        const binCount = freqData.length;
+        let prev = 0;
+        for (let i = 0; i < barsCount; i++) {
+          const idx = Math.floor(Math.pow((i + 1) / barsCount, 2) * binCount);
+          const start = prev;
+          const end = Math.max(idx, start + 1);
+          let sum = 0; for (let j = start; j < end; j++) sum += freqData[j];
+          out[i] = sum / (end - start);
+          prev = end;
+        }
+        return out;
+      }
+
+      // Taller motion
+      const peaks = new Float32Array(BAR_COUNT);
+      function draw() {
+        analyser.getByteFrequencyData(dataArray);
+        const buckets = averageBinsIntoBars(dataArray, BAR_COUNT);
+
+        let energy = 0; for (let i = 0; i < buckets.length; i++) energy += buckets[i];
+        const hueShift = Math.floor((energy / buckets.length / 255) * 160);
+
+        for (let i = 0; i < BAR_COUNT; i++) {
+          const v = buckets[i] / 255; // 0..1
+          const target = Math.max(0.10, Math.pow(v, 1.25));
+          peaks[i] = Math.max(target, peaks[i] - 0.018);
+
+          const scaleY = Math.min(3.4, 0.20 + peaks[i] * 3.0);
+          bars[i].css('transform', 'scaleY(' + scaleY.toFixed(3) + ')');
+
+          const hue = (i / BAR_COUNT) * 360 + hueShift;
+          bars[i].css('background', `linear-gradient(180deg, hsl(${hue} 85% 60%), hsl(${hue + 60} 85% 55%))`);
+          bars[i].css('filter', `drop-shadow(0 0 var(--glow) hsl(${hue} 95% 60% / 0.9))`);
+        }
+        rafId = requestAnimationFrame(draw);
+      }
+
+      // Idle animation until audio is detected
+      let idleT = 0;
+      function idle() {
+        if (rafId) return; // stop idling once drawing from audio
+        idleT += 0.02;
+        for (let i = 0; i < BAR_COUNT; i++) {
+          const wobble = (Math.sin(idleT + i * 0.25) + 1) / 2;
+          const scaleY = 0.14 + wobble * 0.38;
+          bars[i].css('transform', 'scaleY(' + scaleY.toFixed(3) + ')');
+          const hue = (i / BAR_COUNT) * 360 + idleT * 40;
+          bars[i].css('background', `linear-gradient(180deg, hsl(${hue} 85% 60%), hsl(${hue + 60} 85% 55%))`);
+          bars[i].css('filter', `drop-shadow(0 0 var(--glow) hsl(${hue} 95% 60% / 0.7))`);
+        }
+        requestAnimationFrame(idle);
+      }
+      idle();
+
+      // Auto-wire to any audio element on the page when it plays
+      document.addEventListener('play', async (evt) => {
+        const el = evt.target;
+        if (!(el instanceof HTMLAudioElement)) return;
+        try {
+          setup();
+          await ctx.resume();
+          connectSource(ctx.createMediaElementSource(el));
+          if (!rafId) draw();
+        } catch (e) { /* ignore */ }
+      }, true);
+
+      // ----- SHOW/HIDE LOGIC -----
+      function applyVisibility() {
+        if (getScrollY() <= HIDE_THRESHOLD_PX) {
+          $viz.removeClass('hide');
+        } else {
+          $viz.addClass('hide');
+        }
+      }
+
+      function wheelHandler(e) {
+        // Hide immediately on downward intent (works even if page can't scroll)
+        if (e.deltaY > 0) {
+          $viz.addClass('hide');
+        } else if (e.deltaY < 0 && getScrollY() <= HIDE_THRESHOLD_PX) {
+          $viz.removeClass('hide');
+        }
+      }
+
+      let lastTouchY = null;
+      function touchStartHandler(e) {
+        if (e.touches && e.touches.length) lastTouchY = e.touches[0].clientY;
+      }
+      function touchMoveHandler(e) {
+        if (!e.touches || !e.touches.length) return;
+        const y = e.touches[0].clientY;
+        if (lastTouchY !== null) {
+          const dy = y - lastTouchY; // finger down => page up
+          if (dy < 0) $viz.addClass('hide');
+          else if (dy > 0 && getScrollY() <= HIDE_THRESHOLD_PX) $viz.removeClass('hide');
+        }
+        lastTouchY = y;
+      }
+
+      // Attach listeners to the right scroller
+      const addListeners = (target) => {
+        target.addEventListener('scroll', applyVisibility, { passive: true });
+        target.addEventListener('wheel', wheelHandler, { passive: true });
+        target.addEventListener('touchstart', touchStartHandler, { passive: true });
+        target.addEventListener('touchmove', touchMoveHandler, { passive: true });
+      };
+      addListeners(scrollEl);
+
+      // Also handle navigation jumps and initial paint
+      window.addEventListener('hashchange', applyVisibility);
+      document.addEventListener('visibilitychange', applyVisibility);
+      window.addEventListener('load', () => { updateIndicator(); applyVisibility(); });
+
+      // Cleanup
+      window.addEventListener('pagehide', () => { if (rafId) cancelAnimationFrame(rafId); });
+    })();
+  </script>
+</body>
+</html>
