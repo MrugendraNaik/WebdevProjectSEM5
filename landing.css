@@ -148,7 +148,7 @@ nav ul li a {
 
 .hero {
     text-align: center;
-    padding: 140px 20px 100px;
+    padding: 100px 20px 100px;
     position: relative;
     overflow: hidden;
 }
@@ -165,17 +165,16 @@ nav ul li a {
 }
 
 .hero h1 {
-    font-size: 4rem;
+    font-size: 3.6rem;
     font-weight: 900;
     letter-spacing: 3px;
     margin-bottom: 25px;
-    font-family: 'Impact', sans-serif;
-    background: linear-gradient(135deg, #ff1493, #ff69b4, #fff);
+    font-family: inherit;
+    background: linear-gradient(135deg, #ff1493, #ff69b4);;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     text-shadow: 0 0 30px rgba(255, 20, 147, 0.5);
-    animation: glow 2s ease-in-out infinite alternate;
 }
 
 @keyframes glow {
