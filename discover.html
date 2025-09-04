@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>EchoRaga - Start Discovering</title>
+  <link rel="stylesheet" href="discover.css" />
+</head>
+<body>
+  <div class="bg-particles" id="particles"></div>
+
+  <nav>
+    <div class="logo">EchoRaga</div>
+    <ul>
+      <li><a href="landing.html">Home</a></li>
+      <li><a href="about.html">About</a></li>
+      <li><a href="billing.html">Subscription</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><button class="login-btn" onclick="window.location.href='login.html'">Log In</button></li>
+    </ul>
+    <div class="mobile-menu" aria-label="Open mobile menu">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="page-header">
+      <h1>Start Your Musical Journey</h1>
+      <p>Choose how you'd like to discover your next favorite songs. Each path offers a unique way to explore music tailored just for you.</p>
+    </div>
+
+    <div class="discovery-options">
+      <div class="option-card">
+        <div class="option-icon">🎯</div>
+        <div class="option-title">Personalize</div>
+        <div class="option-description">Get music picks that match your vibe.</div>
+        <button class="option-btn" onclick="handleOptionClick('personalize')" aria-label="Start Personalize">Try Now</button>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon">🎤</div>
+        <div class="option-title">Artists</div>
+        <div class="option-description">Find new voices you’ll love.</div>
+        <button class="option-btn" onclick="handleOptionClick('artists')" aria-label="Explore Artists">Explore</button>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon">📈</div>
+        <div class="option-title">Trending</div>
+        <div class="option-description">See what’s hot right now.</div>
+        <button class="option-btn" onclick="handleOptionClick('trending')" aria-label="Check Trending">Check Out</button>
+      </div>
+
+      <div class="option-card">
+        <div class="option-icon">💎</div>
+        <div class="option-title">Exclusives</div>
+        <div class="option-description">Unlock rare & special tracks.</div>
+        <button class="option-btn" onclick="handleOptionClick('exclusives')" aria-label="Access Exclusives">Access</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Particles
+    function createParticle() {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animationDelay = Math.random() * 6 + 's';
+      particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+      document.getElementById('particles').appendChild(particle);
+      setTimeout(() => particle.remove(), 6000);
+    }
+    setInterval(createParticle, 1000);
+
+    // Handle option clicks
+    function handleOptionClick(option) {
+      window.location.href = option + ".html";
+    }
+
+    // Mobile menu
+    document.querySelector('.mobile-menu').addEventListener('click', () => {
+      document.querySelector('nav ul').classList.toggle('show');
+    });
+
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.option-card').forEach(card => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(30px)';
+      card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(card);
+    });
+  </script>
+</body>
+</html>
