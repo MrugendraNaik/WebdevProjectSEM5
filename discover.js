@@ -257,11 +257,12 @@ const fetchRecommendations = async () => {
   const recommendationsList = recommendationsResultDiv.querySelector('.trending-list');
   recommendationsList.innerHTML = '<li style="text-align: center; color: #fff;">Generating your playlist...</li>';
   try {
-    const promises = selectedGenres.map(genre => {
-        // In discover.js, inside fetchRecommendations
-const url = `http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${genre}&api_key=${LASTFM_API_KEY}&format=json`;
-        return fetch(url).then(res => res.json());
-    });
+    // In discover.js, inside fetchRecommendations
+const promises = selectedGenres.map(genre => {
+    const targetUrl = `http://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&tag=${genre}&api_key=${LASTFM_API_KEY}&format=json`;
+    const url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+    return fetch(url).then(res => res.json());
+});
     const results = await Promise.all(promises);
     const allTracks = new Map();
     results.forEach(result => {
